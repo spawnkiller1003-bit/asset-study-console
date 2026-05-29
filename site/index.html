@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ASSET Study Console</title>
+  <style>
+    :root {
+      --bg: #f7f8f5;
+      --panel: #ffffff;
+      --ink: #17201b;
+      --muted: #60706a;
+      --line: #d9dfda;
+      --accent: #1f6f61;
+      --accent-strong: #124d43;
+      --focus: #dfeee9;
+      --warn: #a95d16;
+      --shadow: 0 14px 32px rgba(23, 32, 27, .09);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, input { font: inherit; }
+    .layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+    }
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 18px;
+      background: #eef2ee;
+      border-right: 1px solid var(--line);
+      overflow: auto;
+    }
+    main { padding: 24px; min-width: 0; }
+    h1 { margin: 0; font-size: 24px; line-height: 1.15; letter-spacing: 0; }
+    p { margin: 0; }
+    .muted { color: var(--muted); }
+    .small { font-size: 14px; }
+    .brand { display: grid; gap: 8px; margin-bottom: 18px; }
+    .notice {
+      border: 1px solid #e2c9a9;
+      background: #fff7ea;
+      color: #653900;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 14px 0;
+      font-size: 14px;
+    }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
+    .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+    .stat b { display: block; font-size: 22px; }
+    .stat span { color: var(--muted); font-size: 12px; }
+    .progress { height: 10px; border-radius: 999px; background: #dfe5df; overflow: hidden; margin: 10px 0 16px; }
+    .progress div { height: 100%; width: 0; background: var(--accent); transition: width .2s ease; }
+    .controls { display: grid; gap: 8px; }
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 8px;
+      min-height: 40px;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+    .btn:hover { border-color: #a9b9b0; background: #fbfcfb; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover { background: var(--accent-strong); }
+    .btn.active { background: var(--focus); border-color: var(--accent); color: var(--accent-strong); }
+    .topic-list { display: grid; gap: 8px; margin-top: 12px; }
+    .topic-button {
+      width: 100%;
+      text-align: left;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+    }
+    .topic-button.active { border-color: var(--accent); background: var(--focus); }
+    .topic-button.done .status { color: var(--accent-strong); font-weight: 700; }
+    .card {
+      max-width: 980px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 24px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 8px;
+    }
+    .kicker { color: var(--accent-strong); font-weight: 800; font-size: 14px; }
+    h2 { margin: 0; font-size: 26px; line-height: 1.25; letter-spacing: 0; }
+    .card-body { padding: 24px; display: grid; gap: 18px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .panel { border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: #fbfcfb; }
+    .panel h3 { margin: 0 0 8px; color: var(--accent-strong); font-size: 16px; letter-spacing: 0; }
+    ul { margin: 0; padding-left: 20px; }
+    li + li { margin-top: 6px; }
+    .checklist { display: grid; gap: 8px; }
+    label.check {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      align-items: start;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+    }
+    input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); }
+    .ratings { display: grid; gap: 10px; }
+    .rating-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+    }
+    .rating-row input { width: 150px; accent-color: var(--accent); }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 18px 24px;
+      border-top: 1px solid var(--line);
+      background: #f8faf8;
+    }
+    .footer-note {
+      max-width: 980px;
+      margin: 16px auto 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      main { padding: 16px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .card-head, .card-body, .actions { padding-left: 16px; padding-right: 16px; }
+      h2 { font-size: 22px; }
+      .rating-row { grid-template-columns: 1fr; }
+      .rating-row input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <section class="brand">
+        <h1>ASSET Study Console</h1>
+        <p class="muted small">公開版學習儀表板：依 ACS ASSET 官方課程區域整理，不包含課前測驗題目或答案。</p>
+      </section>
+      <div class="notice">完整本機互動題庫保留在私人專案資料夾；此頁僅供公開展示學習進度與複習架構。</div>
+      <div class="stats">
+        <div class="stat"><b id="doneCount">0</b><span>完成主題</span></div>
+        <div class="stat"><b id="avgScore">0</b><span>平均信心</span></div>
+      </div>
+      <div class="progress"><div id="progressBar"></div></div>
+      <div class="controls">
+        <button class="btn primary" id="markDoneBtn">標記本主題完成</button>
+        <button class="btn" id="resetBtn">清除本機進度</button>
+      </div>
+      <nav class="topic-list" id="topicList" aria-label="ASSET 主題"></nav>
+    </aside>
+    <main>
+      <article class="card">
+        <header class="card-head">
+          <div class="kicker" id="topicKicker">Topic 1</div>
+          <h2 id="topicTitle"></h2>
+          <p class="muted" id="topicSummary"></p>
+        </header>
+        <section class="card-body">
+          <div class="grid">
+            <section class="panel">
+              <h3>核心暴露目標</h3>
+              <ul id="objectives"></ul>
+            </section>
+            <section class="panel">
+              <h3>術前自問</h3>
+              <ul id="prompts"></ul>
+            </section>
+          </div>
+          <section class="panel">
+            <h3>複習檢核</h3>
+            <div class="checklist" id="checklist"></div>
+          </section>
+          <section class="panel">
+            <h3>信心評估</h3>
+            <div class="ratings" id="ratings"></div>
+          </section>
+        </section>
+        <footer class="actions">
+          <button class="btn" id="prevBtn">上一主題</button>
+          <button class="btn primary" id="nextBtn">下一主題</button>
+        </footer>
+      </article>
+      <p class="footer-note">資料架構依 ASSET 官方描述的五大區域：neck、chest、abdomen/pelvis、upper extremities、lower extremities，加上 trauma damage-control 暴露原則。進度只儲存在你的瀏覽器。</p>
+    </main>
+  </div>
+  <script>
+    const topics = [
+      {
+        title: 'Neck and Airway Exposure',
+        summary: '定位 airway、carotid sheath、thoracic inlet 相關結構，並依 hemodynamic status 決定是否立即探索。',
+        objectives: ['Cricothyroidotomy 的外部定位順序', 'Carotid exposure 與 Zone 2 penetrating neck trauma', 'Subclavian/vertebral origin 暴露中的 anterior scalene 與 phrenic nerve'],
+        prompts: ['題幹問 external landmark 還是切開位置？', '病人是否 hemodynamically abnormal 或有 hard signs？', '暴露目標在 carotid sheath、airway，還是 thoracic outlet？'],
+        checks: ['能口述 thyroid cartilage、cricoid cartilage、cricothyroid membrane 的相對位置', '能區分 stable neck injury 的 CTA 評估與 unstable neck injury 的 operative exploration', '能說明 supraclavicular exposure 中要保護 phrenic nerve']
+      },
+      {
+        title: 'Chest and Cardiac Exposure',
+        summary: '依受傷位置與生理狀態選擇 left/right anterolateral thoracotomy、clamshell、sternotomy 或 posterolateral exposure。',
+        objectives: ['Resuscitative thoracotomy 的起手式與延伸', 'Cardiac injury、tamponade 與 pericardial access', 'Distal thoracic esophagus 與 lung/hilar injury exposure'],
+        prompts: ['題目問 initial incision 還是 best exposure？', '出血來源是否在右胸、左胸、心臟或 thoracic outlet？', '目前目標是 resuscitation 還是完整解剖暴露？'],
+        checks: ['能比較 left anterolateral thoracotomy 與 clamshell 的角色', '能區分 median sternotomy、anterolateral thoracotomy、posterolateral thoracotomy 的適用場景', '能描述 distal thoracic esophagus 的暴露思路']
+      },
+      {
+        title: 'Abdomen and Retroperitoneum',
+        summary: '掌握 trauma laparotomy、Zone 1/2/3 hematoma、right/left medial visceral rotation 與 aortic control。',
+        objectives: ['Cattell-Braasch、Kocher 與右側 retroperitoneal exposure', 'Zone 1 hematoma 的 immediate proximal control', 'Renal trauma 與 retroperitoneal Zone 2 anatomy'],
+        prompts: ['病人是否已經開腹？最快 temporary control 是什麼？', '右側或左側 medial visceral rotation 分別暴露哪些結構？', '題目問 operative indication 還是 nonoperative/IR pathway？'],
+        checks: ['能說出 Cattell-Braasch 與 Kocher 合併後的暴露目的', '能區分 Zone 1、Zone 2、Zone 3 的主要結構', '能說明手壓 aorta 與 supraceliac clamp 的先後順序']
+      },
+      {
+        title: 'Pelvis and Liver Damage Control',
+        summary: '以 damage-control priority 處理 pelvic hemorrhage、REBOA bridge 與 high-grade liver injury。',
+        objectives: ['Pelvic binder、preperitoneal packing、embolization、REBOA 的角色', 'Zone I REBOA 的時間限制與 ischemic burden', 'Liver injury 的 bimanual compression、packing 與 Pringle maneuver 順序'],
+        prompts: ['題目問 temporizing measure 還是 definitive control？', 'binder 與輸血無效時下一個 bridge 是什麼？', 'liver trauma 的 initial step 是否不同於後續 inflow control？'],
+        checks: ['能區分 intra-abdominal packing 與 preperitoneal pelvic packing', '能描述 REBOA 是 bridge 而非 definitive repair', '能說明 Pringle 控制 portal triad inflow、不控制 hepatic vein outflow']
+      },
+      {
+        title: 'Extremity Vascular Exposure',
+        summary: '整合 ABI/CTA 判斷、femoral/brachial/popliteal exposure、fasciotomy 與 damage-control vascular strategy。',
+        objectives: ['ABI abnormal 但無 hard signs 時的 vascular imaging decision', 'Femoral、brachial、popliteal artery exposure 的 incision/positioning', 'Compartment syndrome early finding 與 fasciotomy indications'],
+        prompts: ['是否有 hard signs 或 unstable physiology？', '需要 proximal/distal control、conduit harvest 或 fasciotomy 嗎？', '題幹問早期 compartment finding 還是晚期 ischemia sign？'],
+        checks: ['能說明 ABI 0.8 的下一步評估', '能描述 common femoral artery 與 popliteal medial approach 的 setup', '能區分 isolated tibial vessel injury 與 threatened limb 的處置方向']
+      }
+    ];
+
+    const storageKey = 'asset-public-study-console-v1';
+    let state = load();
+    let current = 0;
+
+    const els = {
+      doneCount: document.getElementById('doneCount'),
+      avgScore: document.getElementById('avgScore'),
+      progressBar: document.getElementById('progressBar'),
+      topicList: document.getElementById('topicList'),
+      topicKicker: document.getElementById('topicKicker'),
+      topicTitle: document.getElementById('topicTitle'),
+      topicSummary: document.getElementById('topicSummary'),
+      objectives: document.getElementById('objectives'),
+      prompts: document.getElementById('prompts'),
+      checklist: document.getElementById('checklist'),
+      ratings: document.getElementById('ratings'),
+      markDoneBtn: document.getElementById('markDoneBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      prevBtn: document.getElementById('prevBtn'),
+      nextBtn: document.getElementById('nextBtn')
+    };
+
+    function load() {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey) || '{"done":{},"checks":{},"ratings":{}}');
+      } catch {
+        return { done: {}, checks: {}, ratings: {} };
+      }
+    }
+
+    function save() {
+      localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+
+    function renderList() {
+      els.topicList.innerHTML = '';
+      topics.forEach((topic, index) => {
+        const button = document.createElement('button');
+        button.className = 'topic-button';
+        if (index === current) button.classList.add('active');
+        if (state.done[index]) button.classList.add('done');
+        button.innerHTML = '<span>' + escapeHtml(topic.title) + '</span><span class="status">' + (state.done[index] ? '完成' : '未完成') + '</span>';
+        button.addEventListener('click', () => { current = index; render(); });
+        els.topicList.appendChild(button);
+      });
+    }
+
+    function renderStats() {
+      const done = topics.filter((_, index) => state.done[index]).length;
+      const ratings = Object.values(state.ratings).map(Number).filter(Boolean);
+      const avg = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : '0';
+      els.doneCount.textContent = done;
+      els.avgScore.textContent = avg;
+      els.progressBar.style.width = Math.round(done / topics.length * 100) + '%';
+    }
+
+    function renderTopic() {
+      const topic = topics[current];
+      els.topicKicker.textContent = 'Topic ' + (current + 1) + ' / ' + topics.length;
+      els.topicTitle.textContent = topic.title;
+      els.topicSummary.textContent = topic.summary;
+      renderListItems(els.objectives, topic.objectives);
+      renderListItems(els.prompts, topic.prompts);
+      els.checklist.innerHTML = '';
+      topic.checks.forEach((check, index) => {
+        const id = current + '-' + index;
+        const label = document.createElement('label');
+        label.className = 'check';
+        label.innerHTML = '<input type="checkbox" ' + (state.checks[id] ? 'checked' : '') + '><span>' + escapeHtml(check) + '</span>';
+        label.querySelector('input').addEventListener('change', event => {
+          state.checks[id] = event.target.checked;
+          if (!event.target.checked) delete state.checks[id];
+          save();
+        });
+        els.checklist.appendChild(label);
+      });
+      els.ratings.innerHTML = '';
+      ['解剖定位', '切口選擇', 'damage-control 判斷'].forEach((label, index) => {
+        const id = current + '-r' + index;
+        const value = state.ratings[id] || 3;
+        const row = document.createElement('div');
+        row.className = 'rating-row';
+        row.innerHTML = '<span>' + label + '</span><input type="range" min="1" max="5" value="' + value + '" aria-label="' + label + '"><b>' + value + '</b>';
+        const input = row.querySelector('input');
+        const output = row.querySelector('b');
+        input.addEventListener('input', event => {
+          state.ratings[id] = Number(event.target.value);
+          output.textContent = event.target.value;
+          save();
+          renderStats();
+        });
+        els.ratings.appendChild(row);
+      });
+      els.markDoneBtn.textContent = state.done[current] ? '取消完成標記' : '標記本主題完成';
+      els.prevBtn.disabled = current === 0;
+      els.nextBtn.disabled = current === topics.length - 1;
+    }
+
+    function renderListItems(root, items) {
+      root.innerHTML = '';
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        root.appendChild(li);
+      });
+    }
+
+    function render() {
+      renderStats();
+      renderList();
+      renderTopic();
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch]));
+    }
+
+    els.markDoneBtn.addEventListener('click', () => {
+      state.done[current] = !state.done[current];
+      if (!state.done[current]) delete state.done[current];
+      save();
+      render();
+    });
+    els.resetBtn.addEventListener('click', () => {
+      if (!confirm('確定清除這個瀏覽器中的學習進度？')) return;
+      state = { done: {}, checks: {}, ratings: {} };
+      save();
+      render();
+    });
+    els.prevBtn.addEventListener('click', () => { current = Math.max(0, current - 1); render(); });
+    els.nextBtn.addEventListener('click', () => { current = Math.min(topics.length - 1, current + 1); render(); });
+    render();
+  </script>
+</body>
+</html>

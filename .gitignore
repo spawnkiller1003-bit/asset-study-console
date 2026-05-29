@@ -1,0 +1,14 @@
+.DS_Store
+*.tmp
+*.log
+.env
+.venv/
+node_modules/
+dist/
+build/
+__pycache__/
+
+# Source course materials and private study notes stay local.
+*.pdf
+docs/*.md
+docs/pre-test-interactive.html
